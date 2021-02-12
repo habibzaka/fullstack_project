@@ -1,0 +1,39 @@
+
+version: '2'
+services:
+    db:
+        image: mysql:5.7
+        ports:
+            - "3306:3306"
+        environment:
+            - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_DATABASE=db_contacts
+        volumes:
+            - ./db:/docker-entrypoint-initdb.d/:ro
+    app:
+        build: ./api
+        links:
+            - db
+        working_dir: /app
+        ports:
+            - "5000:5000"
+        command: ./start.sh
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        restart: always
+        depends_on:
+            - db
+        environment:
+            - PMA_HOST=db
+            - MYSQL_ROOT_PASSWORD=root
+        ports:
+            - 8080:80    
+    ui:
+        build: ./ui
+        links:
+            - app
+            - db
+        ports:
+            - "3000:3000"
+        volumes:
+            - ./ui:/usr/src/app/src/app
